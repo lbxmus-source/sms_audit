@@ -78,8 +78,8 @@ class MainActivity : AppCompatActivity() {
             insets
         }
         content.addView(label("Проверка SMS", 26f))
-        content.addView(label("Иврит → русский · отдельный офлайн-анализатор", 16f))
-        content.addView(label("Перевод с помощью Google ML Kit и локальных правил. Программа находит признаки ошибок; правильность смысла проверяется при разборе отчёта.", 14f))
+        content.addView(label("Иврит → русский · офлайн + онлайн-аудит", 16f))
+        content.addView(label("Каждая SMS переводится локально и, при наличии интернета, онлайн для сравнения. На экран тексты SMS не выводятся: полный результат сохраняется в отчёт.", 14f))
         status = label(lastStatus, 15f); content.addView(status)
         counts = label("", 15f); content.addView(counts)
         progress = ProgressBar(this).apply { visibility = View.GONE }; content.addView(progress)
@@ -92,7 +92,7 @@ class MainActivity : AppCompatActivity() {
         stop = Button(this).apply { text = "Пауза"; isEnabled = false; setOnClickListener { work?.cancel() } }
         content.addView(stop)
         content.addView(label("Во время проверки экран остаётся включённым. При выходе — пауза; готовые результаты сохраняются. Новые SMS добавляются повторным чтением.", 13f))
-        senders = CheckBox(this).apply { text = "Добавить номера / имена отправителей в отчёт" }; content.addView(senders)
+        senders = CheckBox(this).apply { text = "Сохранять имя / заголовок отправителя в отчёте"; isChecked = true; isEnabled = false }; content.addView(senders)
         button(content, "4. Сохранить отчёт") { exportDialog(false) }
         button(content, "Поделиться отчётом") { exportDialog(true) }
         button(content, "Повторить неудавшиеся переводы") {
@@ -115,17 +115,7 @@ class MainActivity : AppCompatActivity() {
                     }
                 }.show()
         }
-        content.addView(label("Результаты — по 50 сообщений", 18f))
-        val paging = LinearLayout(this)
-        button(paging, "← Назад") { if (page > 0) { page--; refresh() } }
-        button(paging, "Далее →") {
-            lifecycleScope.launch {
-                val total = withContext(Dispatchers.IO) { AuditStore(this@MainActivity).use { it.summary().total } }
-                if ((page + 1) * 50 < total) { page++; refresh() }
-            }
-        }
-        content.addView(paging)
-        rows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL }; content.addView(rows)
+        rows = LinearLayout(this).apply { orientation = LinearLayout.VERTICAL; visibility = View.GONE }; content.addView(rows)
         refresh()
     }
 
@@ -150,35 +140,15 @@ class MainActivity : AppCompatActivity() {
         }
     }
     private fun setBusy(busy: Boolean) {
-        controls.forEach { it.isEnabled = !busy }; senders.isEnabled = !busy; stop.isEnabled = busy
+        controls.forEach { it.isEnabled = !busy }; senders.isEnabled = false; stop.isEnabled = busy
         progress.visibility = if (busy) View.VISIBLE else View.GONE
         if (busy) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
         else window.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }
     private fun refresh() {
         lifecycleScope.launch {
-            val (summary, entries) = withContext(Dispatchers.IO) {
-                AuditStore(this@MainActivity).use { it.summary() to it.previews(page * 50) }
-            }
+            val summary = withContext(Dispatchers.IO) { AuditStore(this@MainActivity).use { it.summary() } }
             counts.text = "С ивритом: ${summary.total} · обработано: ${summary.done}\nС замечаниями: ${summary.flagged} · без перевода: ${summary.failed}"
-            rows.removeAllViews()
-            entries.forEach { entry ->
-                rows.addView(Button(this@MainActivity).apply {
-                    text = entry.title; isAllCaps = false
-                    setOnClickListener {
-                        val text = label(entry.detail, 16f).apply { setTextIsSelectable(true); setPadding(dp(16), dp(8), dp(16), dp(8)) }
-                        val scroller = ScrollView(this@MainActivity).apply { addView(text) }
-                        AlertDialog.Builder(this@MainActivity).setTitle("Проверка перевода").setView(scroller)
-                            .setPositiveButton("Закрыть", null)
-                            .setNegativeButton("Исключить из отчёта") { _, _ ->
-                                if (work?.isActive != true) runWork("Исключаю сообщение…") {
-                                    withContext(Dispatchers.IO) { AuditStore(this@MainActivity).use { it.exclude(entry.key) } }
-                                    lastStatus = "Сообщение исключено из отчёта. Оригинал на телефоне сохранён."
-                                }
-                            }.show()
-                    }
-                })
-            }
         }
     }
     private fun downloadDialog() {
@@ -217,7 +187,15 @@ class MainActivity : AppCompatActivity() {
                         val message = store.next() ?: break
                         try {
                             val result = withTimeout(120_000L) { AuditPipeline.run(message.original, message.sender, model::translate) }
-                            currentCoroutineContext().ensureActive(); store.complete(message.key, result)
+                            var online: String? = null
+                            var onlineFailure: String? = null
+                            try {
+                                val masked = PrivacyMasker.mask(message.original)
+                                online = withTimeout(30_000L) { OnlineTranslator().translate(masked.text) }
+                                online = masked.restore(online!!)
+                            } catch (e: CancellationException) { throw e }
+                              catch (e: Exception) { onlineFailure = e.message ?: "ONLINE_ERROR" }
+                            currentCoroutineContext().ensureActive(); store.complete(message.key, result, online, onlineFailure)
                         } catch (_: TimeoutCancellationException) { store.fail(message.key, "TIMEOUT") }
                           catch (e: CancellationException) { throw e }
                           catch (_: Exception) { store.fail(message.key, "PROCESSING_ERROR") }
@@ -236,9 +214,9 @@ class MainActivity : AppCompatActivity() {
     }
     private fun exportDialog(share: Boolean) {
         AlertDialog.Builder(this).setTitle("Выгрузить отчёт?")
-            .setMessage("Отчёт содержит полные тексты SMS, включая адреса и коды внутри них. Сообщения можно просмотреть ниже и при необходимости исключить. Передачу отчёта выполняете вы.")
+            .setMessage("Отчёт содержит оригинал SMS, офлайн-перевод, онлайн-перевод и имя/заголовок отправителя. Перед онлайн-переводом ссылки, телефоны, e-mail и многие коды маскируются, а после ответа восстанавливаются. Передачу отчёта выполняете вы.")
             .setNegativeButton("Отмена", null).setPositiveButton("Продолжить") { _, _ ->
-                exportSenders = senders.isChecked; prepareReport(share)
+                exportSenders = true; prepareReport(share)
             }.show()
     }
     private fun prepareReport(share: Boolean) = runWork("Готовлю отчёт…") {

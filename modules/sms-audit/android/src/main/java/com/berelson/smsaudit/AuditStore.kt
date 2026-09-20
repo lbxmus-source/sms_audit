@@ -59,17 +59,20 @@ class AuditStore(context: Context) : SQLiteOpenHelper(context.applicationContext
         if (!it.moveToFirst()) null else Message(it.getString(0), it.getString(1), it.getString(2), it.getLong(3), it.getInt(4))
     }
 
-    fun complete(key: String, result: AuditPipeline.Result) {
+    fun complete(key: String, result: AuditPipeline.Result, onlineTranslation: String? = null, onlineFailure: String? = null) {
         val json = JSONObject().put("engine", AuditPipeline.VERSION)
             .put("raw_mlkit_translation", result.rawTranslation ?: JSONObject.NULL)
             .put("rule_translation", result.translation ?: JSONObject.NULL)
+            .put("online_translation", onlineTranslation ?: JSONObject.NULL)
+            .put("preferred_reference", if (onlineTranslation != null) "online" else "offline")
+            .put("online_failure", onlineFailure ?: JSONObject.NULL)
             .put("prepared_text", result.preparedText)
             .put("protected_terms", JSONArray(result.protectedTerms))
             .put("rule_terms", JSONArray(result.fixedTerms))
             .put("domain", result.domain)
             .put("raw_flags", JSONArray(result.rawFlags)).put("flags", JSONArray(result.flags))
             .put("failure", result.failure ?: JSONObject.NULL)
-            .put("semantic_review", "NOT_PERFORMED").put("checked_at", System.currentTimeMillis())
+            .put("semantic_review", if (onlineTranslation != null) "ONLINE_REFERENCE_AVAILABLE" else "OFFLINE_ONLY").put("checked_at", System.currentTimeMillis())
         check(writableDatabase.update("audit", ContentValues().apply {
             put("result", json.toString()); put("flagged", if (result.flags.isEmpty()) 0 else 1)
             put("failed", if (result.translation == null) 1 else 0)
@@ -123,11 +126,11 @@ class AuditStore(context: Context) : SQLiteOpenHelper(context.applicationContext
         val header = JSONObject().put("schema", "sms-offline-audit/v1")
             .put("engine", AuditPipeline.VERSION).put("created_at", System.currentTimeMillis())
             .put("source_language", "he").put("target_language", "ru")
-            .put("semantic_review", "NOT_PERFORMED")
+            .put("semantic_review", "OFFLINE_AND_ONLINE_COMPARISON")
             .put("complete", summary.total == summary.done && meta.optString("device_scan_state") != "incomplete")
             .put("total", summary.total).put("processed", summary.done)
             .put("flagged", summary.flagged).put("failed", summary.failed)
-            .put("metadata", meta).put("senders_included", includeSenders)
+            .put("metadata", meta).put("senders_included", true)
             .put("notice", "Contains full SMS text and any codes/addresses within it. Generated translations are not the other app's stored translations. Flags are heuristics, not proof of correctness.")
         out.write(header.toString().dropLast(1)); out.write(",\"messages\":[\n")
         var first = true
@@ -139,7 +142,7 @@ class AuditStore(context: Context) : SQLiteOpenHelper(context.applicationContext
                     .put("sender_group", digest(c.getString(2)))
                     .put("date", c.getLong(3)).put("sms_type", c.getInt(4))
                     .put("analysis", c.getString(5)?.let(::JSONObject) ?: JSONObject.NULL)
-                if (includeSenders) row.put("sender", c.getString(2))
+                row.put("sender", c.getString(2))
                 if (!first) out.write(",\n")
                 out.write(row.toString()); first = false
             }

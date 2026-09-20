@@ -21,6 +21,12 @@
         "android.permission.RECORD_AUDIO",
         "android.permission.SYSTEM_ALERT_WINDOW"
       ]
+    },
+    "owner": "lbxms-team",
+    "extra": {
+      "eas": {
+        "projectId": "77345f27-5983-4908-89fd-58bb2c8748da"
+      }
     }
   }
 }

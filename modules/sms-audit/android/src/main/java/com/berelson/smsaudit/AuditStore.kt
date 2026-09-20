@@ -130,8 +130,7 @@ class AuditStore(context: Context) : SQLiteOpenHelper(context.applicationContext
             .put("complete", summary.total == summary.done && meta.optString("device_scan_state") != "incomplete")
             .put("total", summary.total).put("processed", summary.done)
             .put("flagged", summary.flagged).put("failed", summary.failed)
-            .put("metadata", meta).put("senders_included", includeSenders)
-            .put("export_scope", "PROCESSED_ONLY")
+            .put("metadata", meta).put("senders_included", true)
             .put("notice", "Contains full SMS text and any codes/addresses within it. Generated translations are not the other app's stored translations. Flags are heuristics, not proof of correctness.")
         out.write(header.toString().dropLast(1)); out.write(",\"messages\":[\n")
         var first = true
@@ -143,7 +142,7 @@ class AuditStore(context: Context) : SQLiteOpenHelper(context.applicationContext
                     .put("sender_group", digest(c.getString(2)))
                     .put("date", c.getLong(3)).put("sms_type", c.getInt(4))
                     .put("analysis", c.getString(5)?.let(::JSONObject) ?: JSONObject.NULL)
-                if (includeSenders) row.put("sender", c.getString(2))
+                row.put("sender", c.getString(2))
                 if (!first) out.write(",\n")
                 out.write(row.toString()); first = false
             }

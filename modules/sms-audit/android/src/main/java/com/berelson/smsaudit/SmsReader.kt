@@ -10,29 +10,40 @@ import java.io.Reader
 
 object SmsReader {
     data class Counts(val scanned: Int, val hebrew: Int, val skipped: Int)
-    suspend fun readDevice(context: Context, store: AuditStore, progress: suspend (Int) -> Unit): Counts {
+    suspend fun readDevice(context: Context, store: AuditStore, progress: suspend (Int) -> Unit): Counts =
+        readDeviceInternal(context, store, progress, incremental = false)
+
+    /** After the first successful device scan, reads only SMS newer than the saved checkpoint. */
+    suspend fun readDeviceIncremental(context: Context, store: AuditStore, progress: suspend (Int) -> Unit): Counts =
+        readDeviceInternal(context, store, progress, incremental = true)
+
+    private suspend fun readDeviceInternal(context: Context, store: AuditStore, progress: suspend (Int) -> Unit, incremental: Boolean): Counts {
         var scanned = 0; var hebrew = 0
-        val scanTag = java.util.UUID.randomUUID().toString()
+        val prefs = context.getSharedPreferences("sms_audit_scan", Context.MODE_PRIVATE)
+        val checkpoint = if (incremental) prefs.getLong("last_sms_date", 0L) else 0L
+        var newestDate = checkpoint
+        val selection = if (checkpoint > 0L) "date > ?" else null
+        val args = if (checkpoint > 0L) arrayOf(checkpoint.toString()) else null
         store.metadata("device_scan_state", "incomplete")
         val cursor = context.contentResolver.query(Telephony.Sms.CONTENT_URI,
-            arrayOf("_id", "body", "address", "date", "type"), null, null, "date DESC")
+            arrayOf("_id", "body", "address", "date", "type"), selection, args, "date ASC")
             ?: error("SMS_PROVIDER_UNAVAILABLE")
         cursor.use { c ->
             while (c.moveToNext()) {
                 currentCoroutineContext().ensureActive(); scanned++
-                val body = c.getString(1).orEmpty()
+                val id = c.getLong(0); val body = c.getString(1).orEmpty(); val date = c.getLong(3)
+                if (date > newestDate) newestDate = date
                 if (AuditPipeline.hasHebrew(body)) {
-                    store.put(AuditStore.Message("sms:${c.getLong(0)}", body, c.getString(2).orEmpty(), c.getLong(3), c.getInt(4)))
-                    store.markSeen("sms:${c.getLong(0)}", scanTag)
-                    hebrew++
+                    store.put(AuditStore.Message("sms:$id", body, c.getString(2).orEmpty(), date, c.getInt(4))); hebrew++
                 }
                 if (scanned % 100 == 0) progress(scanned)
             }
         }
-        store.finishScan(scanTag)
-        store.metadata("device_scanned", scanned.toString())
-        store.metadata("device_hebrew", hebrew.toString())
-        store.metadata("device_skipped_without_hebrew", (scanned - hebrew).toString())
+        // Save checkpoint only after the scan completed successfully. Existing rows/results are never reset.
+        if (newestDate > checkpoint) prefs.edit().putLong("last_sms_date", newestDate).apply()
+        store.metadata("device_scan_state", "complete")
+        store.metadata("device_last_incremental_scanned", scanned.toString())
+        store.metadata("device_last_incremental_hebrew", hebrew.toString())
         store.metadata("device_scan_completed_at", System.currentTimeMillis().toString())
         return Counts(scanned, hebrew, scanned - hebrew)
     }

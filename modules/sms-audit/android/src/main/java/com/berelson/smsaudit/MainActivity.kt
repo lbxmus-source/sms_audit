@@ -84,14 +84,14 @@ class MainActivity : AppCompatActivity() {
         counts = label("", 15f); content.addView(counts)
         progress = ProgressBar(this).apply { visibility = View.GONE }; content.addView(progress)
         button(content, "1. Загрузить модели перевода") { downloadDialog() }
-        button(content, "2. Прочитать все SMS") {
+        button(content, "2. Проверить новые SMS") {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) == PackageManager.PERMISSION_GRANTED) scanSms()
             else smsPermission.launch(Manifest.permission.READ_SMS)
         }
-        button(content, "3. Перевести / продолжить") { translateAll() }
-        stop = Button(this).apply { text = "Пауза"; isEnabled = false; setOnClickListener { work?.cancel() } }
+        button(content, "3. Фоновая проверка / продолжить") { startBackgroundAudit() }
+        stop = Button(this).apply { text = "Остановить фоновую проверку"; isEnabled = true; setOnClickListener { AuditService.stop(this@MainActivity); lastStatus = "Фоновая проверка остановлена. При следующем запуске продолжится с сохранённого места."; status.text = lastStatus } }
         content.addView(stop)
-        content.addView(label("Во время проверки экран остаётся включённым. При выходе — пауза; готовые результаты сохраняются. Новые SMS добавляются повторным чтением.", 13f))
+        content.addView(label("Проверка работает в фоне: экран можно выключить или закрыть приложение. Готовые результаты сохраняются после каждой SMS. Повторный запуск продолжает незавершённые и читает только новые SMS после последней успешной проверки.", 13f))
         senders = CheckBox(this).apply { text = "Сохранять имя / заголовок отправителя в отчёте"; isChecked = true; isEnabled = false }; content.addView(senders)
         button(content, "4. Сохранить отчёт") { exportDialog(false) }
         button(content, "Поделиться отчётом") { exportDialog(true) }
@@ -170,12 +170,21 @@ class MainActivity : AppCompatActivity() {
     private fun scanSms() = runWork("Читаю SMS…") {
         val c = withContext(Dispatchers.IO) {
             AuditStore(this@MainActivity).use { store ->
-                SmsReader.readDevice(this@MainActivity, store) { n -> withContext(Dispatchers.Main) { status.text = "Прочитано SMS: $n" } }
+                SmsReader.readDeviceIncremental(this@MainActivity, store) { n -> withContext(Dispatchers.Main) { status.text = "Прочитано SMS: $n" } }
             }
         }
         lastStatus = "Прочитано ${c.scanned}. С ивритом: ${c.hebrew}. Пропущено без иврита: ${c.skipped}."
     }
-    private fun translateAll() = runWork("Проверяю модели…") {
+    private fun startBackgroundAudit() {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_SMS) != PackageManager.PERMISSION_GRANTED) {
+            smsPermission.launch(Manifest.permission.READ_SMS); return
+        }
+        AuditService.start(this)
+        lastStatus = "Фоновая проверка запущена. Можно выключить экран или закрыть приложение."
+        status.text = lastStatus
+    }
+
+    private fun translateAllLegacy() = runWork("Проверяю модели…") {
         withContext(Dispatchers.IO) {
             OfflineModel().use { model ->
                 if (!model.ready()) { lastStatus = "Сначала нажмите «Загрузить модели перевода»."; return@withContext }
@@ -259,5 +268,5 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putString("export_file", preparedExport?.absolutePath); super.onSaveInstanceState(outState)
     }
-    override fun onStop() { work?.cancel(); super.onStop() }
+    override fun onStop() { super.onStop() }
 }

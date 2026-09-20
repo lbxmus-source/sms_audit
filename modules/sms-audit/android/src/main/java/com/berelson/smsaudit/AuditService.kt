@@ -7,6 +7,7 @@ import android.os.Build
 import android.os.IBinder
 import androidx.core.app.NotificationCompat
 import kotlinx.coroutines.*
+import kotlinx.coroutines.currentCoroutineContext
 
 class AuditService : Service() {
     companion object {
@@ -45,7 +46,7 @@ class AuditService : Service() {
                 OfflineModel().use { model ->
                     if (!model.ready()) { update("Офлайн-модель не загружена. Откройте приложение и загрузите модель."); delay(2500); return }
                     while (true) {
-                        ensureActive()
+                        currentCoroutineContext().ensureActive()
                         val message = store.next() ?: break
                         val result = try { withTimeout(120_000L) { AuditPipeline.run(message.original, message.sender, model::translate) } }
                         catch (_: TimeoutCancellationException) { store.fail(message.key, "TIMEOUT"); continue }

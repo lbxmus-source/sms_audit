@@ -130,19 +130,20 @@ class AuditStore(context: Context) : SQLiteOpenHelper(context.applicationContext
             .put("complete", summary.total == summary.done && meta.optString("device_scan_state") != "incomplete")
             .put("total", summary.total).put("processed", summary.done)
             .put("flagged", summary.flagged).put("failed", summary.failed)
-            .put("metadata", meta).put("senders_included", true)
+            .put("metadata", meta).put("senders_included", includeSenders)
+            .put("export_scope", "PROCESSED_ONLY")
             .put("notice", "Contains full SMS text and any codes/addresses within it. Generated translations are not the other app's stored translations. Flags are heuristics, not proof of correctness.")
         out.write(header.toString().dropLast(1)); out.write(",\"messages\":[\n")
         var first = true
         readableDatabase.query("audit", arrayOf("message_key", "original", "sender", "date", "type", "result"),
-            "excluded=0", null, null, null, "flagged DESC, date DESC, message_key ASC").use { c ->
+            "excluded=0 AND result IS NOT NULL", null, null, null, "flagged DESC, date DESC, message_key ASC").use { c ->
             while (c.moveToNext()) {
                 ensureActive()
                 val row = JSONObject().put("id", c.getString(0)).put("original", c.getString(1))
                     .put("sender_group", digest(c.getString(2)))
                     .put("date", c.getLong(3)).put("sms_type", c.getInt(4))
                     .put("analysis", c.getString(5)?.let(::JSONObject) ?: JSONObject.NULL)
-                row.put("sender", c.getString(2))
+                if (includeSenders) row.put("sender", c.getString(2))
                 if (!first) out.write(",\n")
                 out.write(row.toString()); first = false
             }

@@ -1,0 +1,26 @@
+{
+  "expo": {
+    "name": "Проверка SMS",
+    "slug": "sms-offline-audit",
+    "version": "1.0.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "light",
+    "platforms": [
+      "android"
+    ],
+    "android": {
+      "package": "com.berelson.smsaudit.expo",
+      "versionCode": 1,
+      "allowBackup": false,
+      "permissions": [
+        "android.permission.READ_SMS",
+        "android.permission.INTERNET",
+        "android.permission.ACCESS_NETWORK_STATE"
+      ],
+      "blockedPermissions": [
+        "android.permission.RECORD_AUDIO",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
+    }
+  }
+}

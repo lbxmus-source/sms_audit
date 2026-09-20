@@ -1,0 +1,126 @@
+[
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smsaudit/AuditPipeline.kt",
+    "sha256": "aa882e74e4c42e32a744ee5c1850a613da72aebc4651ec4012b24e9ce217d114"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smsaudit/AuditStore.kt",
+    "sha256": "86438228de54eb4cebc465cad9f8326978d8b054f810647421214cab9bbf8653"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smsaudit/MainActivity.kt",
+    "sha256": "087820f52c3c857c8f34f894fca3d7c21c9487b2b5f9cafaad2176035d51e1d5"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smsaudit/OfflineModel.kt",
+    "sha256": "19d4f5151f28625e21901386f6f4fbdd760476cd3ce27821fd881006e60a423b"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smsaudit/SmsReader.kt",
+    "sha256": "4eabe2a92ddf0a0d1b8349a74be3719226996e0b79d099c2573168fe1329c082"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/BrandProtector.kt",
+    "sha256": "b0e4f01813590cb271c8fa8470bce915785809cdf079cbfbd6de7cfcff99e7e8"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/DomainRuleEngine.kt",
+    "sha256": "2fdf13d20b62322bd3fe61f484ac7040e14e35f55d46c57cb2780d09ab4ec4aa"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/HebrewDeliveryTemplates.kt",
+    "sha256": "7f22813f090c1da6157a63f424fa9d0159661a6fb51419d9c40bfb3d2868ed9f"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/HebrewNotificationRules.kt",
+    "sha256": "ff09b28df1b911084923296efe07c8c32782fc2ac92e1e2e67ec89cf30710750"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/HebrewPhraseRules.kt",
+    "sha256": "7b73d27dba121be1d233dbdd3ff65bb05651795b99ec1e225668b02062b6c89b"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/HebrewPrefixAnalyzer.kt",
+    "sha256": "0243334ce5784def625d6083598afca96f4ab04f09c64f2c8735acf3565ff438"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/HebrewPrefixRules.kt",
+    "sha256": "fcd67073bbe179c18f8fe20d2d3115447a7e7bb7e773f6df9c9dc3630c8690ef"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/HebrewSlotRules.kt",
+    "sha256": "7a96657ecc1cbf097e422647e25206b96e1588b4d4dfacfd2e8733e3c95c8bb5"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/LanguageScriptHeuristics.kt",
+    "sha256": "b8ce36e94547bd356eb3ff27372e4e41e528d5ee1db62db4345a9b9be0657fef"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/MixedLanguageText.kt",
+    "sha256": "5e2e2b251d257128e05076a00fae85a8e4e3c81c5cf5774eb837cb146b825d7a"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/OfflineTranslationPreparation.kt",
+    "sha256": "511d5e2bcc1802014e5989c6cd933b54049c1b90bbaea6a628f5d148fed3920b"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/TokenProtector.kt",
+    "sha256": "160ede47f25e5a1d6f6c715edee96931e62ca4275f9767bd674acd483081170a"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/TranslationValidator.kt",
+    "sha256": "994dfa791501f723b4987caf0f3c86bfce417c48755d958f728fab8b82cdb5b3"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/com/berelson/smstranslator/translation/ValidatedOfflineTranslator.kt",
+    "sha256": "0cafb7040b30e3ab5f42502f342cd219a4df9c94d4f94ff2e17d2715ef6664d0"
+  },
+  {
+    "path": "modules/sms-audit/android/src/main/java/expo/modules/smsaudit/SmsAuditModule.kt",
+    "sha256": "c7d7ad7c76112c4145a8ed7a8f8900fe95fb6ce5ef853672bbd6200fc362e253"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smsaudit/AuditPipelineTest.kt",
+    "sha256": "c04de103efeb1de9a8a5e25820f25c949da8ba4c2b5eb9db95c9d64b8b3b25f0"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smsaudit/AuditStoreTest.kt",
+    "sha256": "709c727069fa83fe8411576703b5866ed3db54eac1db954ba94a438b9205b4af"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/DomainRuleEngineTest.kt",
+    "sha256": "c63cc09927c1d87ebc68f6e331dda0f2cf65cac316698f8a5ea32c61a65184e2"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/HebrewPrefixAnalyzerTest.kt",
+    "sha256": "3e20ba1822b8b27a0309a0cc6b0a2afb4108f89998db04e130922c5b27f3a1e6"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/LanguageScriptHeuristicsTest.kt",
+    "sha256": "271730e7e421d6b7fdbdf3fbaddf63dad7d840ed55a3b77a0ec450eb0bf79928"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/NotificationRulesTest.kt",
+    "sha256": "15fa7095f47c6afff1ec9691f577dd5dab0183904999a4899c75259bc82141c1"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/OfflineTranslationRegressionTest.kt",
+    "sha256": "4a99cf1e4f735ae76971fa1ce1ef4f04cdeea3ff8590a9e160447e04c35d0114"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/ReusableRulesTest.kt",
+    "sha256": "c19f938570a0905aa8905110d209ed1dfdaa0912942a72f522b5cc10ce3fbbf5"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/ReviewedSmsTest.kt",
+    "sha256": "e156d47a63e1e004080993a5408dd49109116ee3d5d05f1028e87c9549824538"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/TokenProtectorTest.kt",
+    "sha256": "ae6eb3b146e2ec651bfcf03f30d4c0f63842a0d43ebb27c25577bdf7fd61c080"
+  },
+  {
+    "path": "modules/sms-audit/android/src/test/java/com/berelson/smstranslator/translation/TranslationValidatorTest.kt",
+    "sha256": "a390bc98c47fa8376bf3865ca9f3a013caef2b26cf68d161e2f15d9636f6675a"
+  }
+]

@@ -23,18 +23,18 @@ export default function App() {
       <ScrollView contentContainerStyle={styles.content}>
         <Text style={styles.badge}>ИВРИТ → РУССКИЙ</Text>
         <Text style={styles.title}>Проверка SMS</Text>
-        <Text style={styles.text}>Переведите SMS на телефоне и сохраните отчёт для разбора в чате.</Text>
+        <Text style={styles.text}>Сравните офлайн- и онлайн-перевод SMS и сохраните полный отчёт для разбора в чате.</Text>
         <View style={styles.card}>
           <Text style={styles.step}>1. Загрузите офлайн-модели</Text>
           <Text style={styles.step}>2. Разрешите чтение SMS</Text>
-          <Text style={styles.step}>3. Запустите проверку</Text>
+          <Text style={styles.step}>3. Запустите офлайн + онлайн проверку</Text>
           <Text style={styles.step}>4. Сохраните отчёт и загрузите в чат</Text>
         </View>
         <Pressable accessibilityRole="button" onPress={open} style={styles.button}>
           <Text style={styles.buttonText}>Открыть проверку</Text>
         </Pressable>
         {!!error && <Text accessibilityRole="alert" style={styles.error}>{error}</Text>}
-        <Text style={styles.note}>Автоматическая проверка отмечает подозрительные места. Правильность смысла разбирается по отчёту. После загрузки моделей перевод работает без интернета.</Text>
+        <Text style={styles.note}>Офлайн-перевод работает на телефоне. При наличии интернета добавляется онлайн-перевод для сравнения. Полные SMS на экран не выводятся — они сохраняются только в отчёт.</Text>
       </ScrollView>
     </View>
   );
